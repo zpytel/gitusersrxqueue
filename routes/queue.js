@@ -46,14 +46,26 @@ function illnesskeyExists(illness,exists,snap,db,data){
         console.log('illnesskey: ' + illness + ' not exists')
     }
 }
-var options={
-    'specId':'verify_user'
+function checkUsers(data,progress,resolve,reject){
+    let checkadmin=admin.database().ref('/admins/' + data.user );
+    
+    checkadmin.once('value',function(snap){
+        if(snap.val()!=null){
+            resolve(data)
+        }else{
+        checkUser(data,progress,resolve,reject);
+        
+        }
+    })
+    
+    
 }
-var verifyqueue=new Queue(ref,options,function(data,progress,resolve,reject){
-let illness=data.part + '|' + data.illness;
-let illnesskeymsg=admin.database().ref('/items/illnesskeymsg/' + illness + '/' + data.keyword +'/' + data.user );
-    illnesskeymsg.once('value',function(snapshot){
+function checkUser(data,progress,resolve,reject){
+ let illness=data.part + '|' + data.illness;
+ let illnesskeymsg=admin.database().ref('/items/illnesskeymsg/' + illness + '/' + data.keyword +'/' + data.user );
+ illnesskeymsg.once('value',function(snapshot){
          var exists=(snapshot.val()!=null);
+         
          console.log("Exists:" + exists)
          if (exists==true){
              console.log("user exists")
@@ -66,6 +78,15 @@ let illnesskeymsg=admin.database().ref('/items/illnesskeymsg/' + illness + '/' +
          }
          
     });
+
+}
+
+
+var options={
+    'specId':'verify_user'
+}
+var verifyqueue=new Queue(ref,options,function(data,progress,resolve,reject){
+   checkUsers(data,progress,resolve,reject)
 })
 var optionsMain={
     'specId':'add_items'
